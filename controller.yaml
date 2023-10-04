@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller
+  labels:
+    app: controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: controller
+  template:
+    metadata:
+      labels:
+        app: controller
+    spec:
+      serviceAccountName: controller-serviceaccount
+      containers:
+      - name: controller
+        image: andy011850/controller:latest
+        imagePullPolicy: Always
+        command: ["python", "controller.py"]

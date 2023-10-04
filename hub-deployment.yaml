@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: selenium-hub
+  labels:
+    app: selenium-hub
+spec:
+  type: NodePort
+  selector:
+    app: selenium-hub
+  ports:
+  - name: "se-event-bus-publish-port"
+    port: 4442
+    targetPort: 4442
+    nodePort: 30442
+  - name: "se-event-bus-subscribe-port"
+    port: 4443
+    targetPort: 4443
+    nodePort: 30443
+  - name: "se-hub-port"
+    port: 4444
+    targetPort: 4444
+    nodePort: 30444
+  sessionAffinity: None
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium-hub
+  labels:
+    app: selenium-hub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: selenium-hub
+  template:
+    metadata:
+      labels:
+        app: selenium-hub
+    spec:
+      serviceAccountName: controller-serviceaccount
+      containers:
+        - name: selenium-hub
+          image: seleniarm/hub:latest
+          ports:
+            - containerPort: 4442
+            - containerPort: 4443
+            - containerPort: 4444
+          env:
+            - name: SE_SESSION_REQUEST_TIMEOUT
+              value: "180"
+            - name: SE_SESSION_RETRY_INTERVAL
+              value: "0"
+        - name: event-generator
+          image: andy011850/event-generator:latest
+          imagePullPolicy: Always
+          command: ["python", "event-generator.py"]

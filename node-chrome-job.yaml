@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: selenium-node-chrome
+  labels:
+    app: selenium-node-chrome
+    name: selenium-node-chrome
+spec:
+  template:
+    metadata:
+      labels:
+        app: selenium-node-chrome
+    spec:
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      containers:
+        - name: selenium-node-chrome
+          image: seleniarm/node-chromium:latest
+          env:
+            - name: SE_EVENT_BUS_HOST
+              value: "selenium-hub"
+            - name: SE_EVENT_BUS_SUBSCRIBE_PORT
+              value: "4443"
+            - name: SE_EVENT_BUS_PUBLISH_PORT
+              value: "4442"
+            - name: SE_NODE_SESSION_TIMEOUT
+              value: "300"
+            - name: SE_OPTS
+              value: "--drain-after-session-count 1"
+          resources:
+            limits:
+              memory: "1600Mi"
+              cpu: "2"
+            requests:
+              cpu: ".01"
+              memory: "400Mi"
+          ports:
+          - containerPort: 5555
+            protocol: TCP
+          - containerPort: 7900
+            protocol: TCP
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+      restartPolicy: Never
+  completions: 1000
+  parallelism: 0
